@@ -1,24 +1,47 @@
-# === STEP 1: Imports ===
+# === Imports ===
 import pandas as pd
 import os
 
-# === STEP 2: Load the raw dataset ===
+# === Load the raw dataset ===
 # This loads the CSV file you previously scraped or downloaded.
 input_path = "data/raw/immoweb-dataset.csv"
 df = pd.read_csv(input_path)
 
-# === STEP 3: Drop irrelevant or low-quality columns ===
-# These columns are either not useful for analysis or too incomplete.
+# === DROP LOW-QUALITY COLUMNS ===
+# These columns are removed because they fall into one or more of the following categories:
+# - ❌ Too sparse: More than 50–80% of the values are missing, making them unreliable for modeling.
+# - 📉 Low predictive value: The feature is either redundant, uninformative, or unlikely to influence price significantly.
+# - 🔁 Duplicated or implied: Some features are already covered by other variables (e.g., 'roomCount' vs. 'bedroomCount').
+# - 🧱 Metadata: Technical information or identifiers not useful for analysis or machine learning.
+
+# This code calculates the percentage of missing values for each column.
+# Columns with more than 50% or 80% missing values are considered unreliable for modeling.
+
+# === DROP COLUMNS WITH TOO MANY MISSING VALUES (MORE THAN 40%) ===
+
+# Step 1: Calculate the percentage of missing values for each column
+missing_percentages = df.isnull().mean() * 100
+# Step 2: Identify columns where more than 40% of the data is missing
+cols_to_drop = missing_percentages[missing_percentages > 40].index.tolist()
+# Step 3: Print a sorted list of columns with their % of missing data (only the ones to drop)
+print("\n❌ Columns with more than 40% missing values (recommended to drop):")
+print(missing_percentages[cols_to_drop].sort_values(ascending=False))
+# Step 4: Drop these columns from the DataFrame
+df.drop(columns=cols_to_drop, inplace=True)
+# Step 5: Confirm and list what was dropped
+print(f"\n🧹 Dropped {len(cols_to_drop)} columns with >40% missing values:")
+for col in cols_to_drop:
+    print(f" - {col} ({missing_percentages[col]:.1f}% missing)")
+
+# Additional columns to drop
 columns_to_drop = [
-    "Unnamed: 0", "monthlyCost", "hasBalcony", "accessibleDisabledPeople",
-    "url", "id", "diningRoomSurface", "streetFacadeWidth", "gardenSurface",
-    "roomCount", "kitchenSurface", "livingRoomSurface", "floorCount", "facedeCount",
-    "hasAttic", "hasBasement", "hasDressingRoom", "hasDiningRoom",
-    "hasLift", "hasHeatPump", "hasPhotovoltaicPanels", "hasThermicPanels",
-    "kitchenType", "hasLivingRoom", "hasGarden", "gardenOrientation",
-    "hasAirConditioning", "hasArmoredDoor", "hasVisiophone", "hasOffice",
-    "hasSwimmingPool", "hasFireplace", "hasTerrace", "terraceOrientation",
-    "terraceSurface", "postCode", "floodZoneType", "landSurface", "toiletCount"
+    "Unnamed: 0", # leftover index column from CSV export
+    # 🔗 Metadata or URLs (not used in modeling)
+    "url", "id",
+    # 📏 Not critical for value estimation ????
+    #    "facedeCount", # not sure yet????
+    # 🌍 Geographic details – either redundant or too granular for our use case, leave in for now as it is numeric
+    # "postCode",  
 ]
 # Drop only if the column exists
 df.drop(columns=[col for col in columns_to_drop if col in df.columns], inplace=True)
