@@ -9,16 +9,13 @@ df = pd.read_csv(input_path)
 
 # === DROP LOW-QUALITY COLUMNS ===
 # These columns are removed because they fall into one or more of the following categories:
-# - ❌ Too sparse: More than 50–80% of the values are missing, making them unreliable for modeling.
+# - ❌ Too sparse: More than 40% of the values are missing, making them unreliable for modeling.
 # - 📉 Low predictive value: The feature is either redundant, uninformative, or unlikely to influence price significantly.
 # - 🔁 Duplicated or implied: Some features are already covered by other variables (e.g., 'roomCount' vs. 'bedroomCount').
 # - 🧱 Metadata: Technical information or identifiers not useful for analysis or machine learning.
 
 # This code calculates the percentage of missing values for each column.
-# Columns with more than 50% or 80% missing values are considered unreliable for modeling.
-
-# === DROP COLUMNS WITH TOO MANY MISSING VALUES (MORE THAN 40%) ===
-
+# Columns with more than 40% or 80% missing values are considered unreliable for modeling.
 # Step 1: Calculate the percentage of missing values for each column
 missing_percentages = df.isnull().mean() * 100
 # Step 2: Identify columns where more than 40% of the data is missing
