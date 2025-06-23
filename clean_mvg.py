@@ -26,7 +26,6 @@ df.drop(columns=[col for col in columns_to_drop if col in df.columns], inplace=T
 # === STEP 4: Clean up text fields and duplicates ===
 # Replace empty strings with NaN (standard missing value marker in pandas)
 df.replace('', pd.NA, inplace=True)
-
 # Strip leading/trailing whitespace from all text (object) columns ????
 # Determine which columns where affected ????
 for col in df.select_dtypes(include='object'):
