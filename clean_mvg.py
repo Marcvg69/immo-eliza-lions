@@ -9,6 +9,34 @@ import seaborn as sns
 input_path = "data/raw/immoweb-dataset.csv"
 df = pd.read_csv(input_path)
 
+# Characteristics of original dataset
+
+# === Get to know and visualize our data ===
+# Data Overview
+print("Data Overview:")
+print(f"Rows: {df.shape[0]}")
+print(f"Columns: {df.shape[1]}")
+print("\nData types:")
+print(df.dtypes)
+
+# Check for missing values
+missing_values = df.isnull().sum()
+print("\nMissing Values:")
+print(missing_values)
+
+# Check for duplicates
+duplicates = df.duplicated().sum()
+print(f"\nDuplicates: {duplicates}")
+
+# Display basic info about the dataset
+print("\nBasic Information:")
+print(df.info())
+
+# Show the first few rows of the dataset to inspect the data
+print("\nFirst few rows of the dataset:")
+print(df.head())
+
+# Start Cleaning / Enhancing dataset
 # DROP LOW-QUALITY COLUMNS
 # These columns are removed because they fall into one or more of the following categories:
 # - ❌ Too sparse: More than 40% of the values are missing, making them unreliable for modeling.
