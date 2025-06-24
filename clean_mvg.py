@@ -1,13 +1,15 @@
 # === Imports ===
 import pandas as pd
 import os
+import matplotlib.pyplot as plt
+import seaborn as sns
 
-# === Load the raw dataset ===
+# Load the raw dataset
 # This loads the CSV file you previously scraped or downloaded.
 input_path = "data/raw/immoweb-dataset.csv"
 df = pd.read_csv(input_path)
 
-# === DROP LOW-QUALITY COLUMNS ===
+# DROP LOW-QUALITY COLUMNS
 # These columns are removed because they fall into one or more of the following categories:
 # - ❌ Too sparse: More than 40% of the values are missing, making them unreliable for modeling.
 # - 📉 Low predictive value: The feature is either redundant, uninformative, or unlikely to influence price significantly.
@@ -43,7 +45,7 @@ columns_to_drop = [
 # Drop only if the column exists
 df.drop(columns=[col for col in columns_to_drop if col in df.columns], inplace=True)
 
-# === STEP 4: Clean up text fields and duplicates ===
+# Clean up text fields and duplicates 
 # Replace empty strings with NaN (standard missing value marker in pandas)
 df.replace('', pd.NA, inplace=True)
 # Strip leading/trailing whitespace from all text (object) columns ????
@@ -54,11 +56,11 @@ for col in df.select_dtypes(include='object'):
 # Remove exact duplicate rows
 df.drop_duplicates(inplace=True)
 
-# === STEP 5: Drop rows with missing price ===
+# Drop rows with missing price ===
 # Price is our target variable — we can’t model or analyse without it.
 df = df[df['price'].notna()].copy()
 
-# === STEP 6: Add REGION column ===
+# Add REGION column
 # Group provinces into their major Belgian regions (Flanders, Wallonia, Brussels)
 belgium_regions = {
     'Antwerp': 'Flanders', 'Limburg': 'Flanders', 'East Flanders': 'Flanders',
@@ -69,7 +71,7 @@ belgium_regions = {
 }
 df['region'] = df['province'].map(belgium_regions)
 
-# === STEP 7: Convert categorical strings to numerical values ===
+# Convert categorical strings to numerical values
 # These mappings convert qualitative labels to ordinal numerical values for modeling.
 
 # Clean EPC scores like 'EPC_SCORE_A' into just 'A'
@@ -89,35 +91,83 @@ df['epcScore'] = df['epcScore'].apply(extract_epc).map(epc_mapping)
 df['buildingCondition'] = df['buildingCondition'].map(condition_mapping)
 df['type'] = df['type'].map(type_mapping)
 
-# === STEP 8: Add price per m² metric ===
+# Add price per m² metric
 # Helps standardize property value comparisons across different sizes
 df['price_per_m2'] = df['price'] / df['habitableSurface']
 
-# === STEP 9: Save outputs ===
+# REMOVE OUTLIERS
+def remove_outliers_iqr(df, columns):
+    df_filtered = df.copy()
+    for col in columns:
+        Q1 = df_filtered[col].quantile(0.25)
+        Q3 = df_filtered[col].quantile(0.75)
+        IQR = Q3 - Q1
+        lower = Q1 - 1.5 * IQR
+        upper = Q3 + 1.5 * IQR
+        
+        # Print stats
+        print(f"\n📊 Outlier analysis for '{col}':")
+        print(f"  Q1 (25th percentile): {Q1:,.2f}")
+        print(f"  Q3 (75th percentile): {Q3:,.2f}")
+        print(f"  IQR: {IQR:,.2f}")
+        print(f"  Outlier threshold: < {lower:,.2f} or > {upper:,.2f}")
+
+        original_len = len(df_filtered)
+        outlier_count = df_filtered[(df_filtered[col] < lower) | (df_filtered[col] > upper)].shape[0]
+        pct_removed = 100 * outlier_count / original_len
+        print(f"  Outliers to remove: {outlier_count} ({pct_removed:.2f}%)")
+
+        # PLOT before removal
+        plt.figure(figsize=(10, 4))
+        sns.boxplot(x=df_filtered[col])
+        plt.title(f"Before: Outliers in {col}")
+        plt.xlabel(col)
+        plt.tight_layout()
+        plt.show()
+
+        # Remove outliers
+        df_filtered = df_filtered[(df_filtered[col] >= lower) & (df_filtered[col] <= upper)]
+
+        # PLOT after removal
+        plt.figure(figsize=(10, 4))
+        sns.boxplot(x=df_filtered[col])
+        plt.title(f"After: Outliers removed from {col}")
+        plt.xlabel(col)
+        plt.tight_layout()
+        plt.show()
+
+    return df_filtered
+
+# Columns to check for outliers
+columns_to_filter = ['price', 'price_per_m2', 'habitableSurface', 'bedroomCount', 'bathroomCount']
+# Apply outlier removal
+df_no_outliers = remove_outliers_iqr(df, columns_to_filter)
+
+# Save result
 # Create output folder if not present
 os.makedirs("data/cleaned", exist_ok=True)
-
-# Save cleaned dataset to main CSV
-main_output = "data/cleaned/immoweb-dataset_cleaned_mvg.csv"
-df.to_csv(main_output, index=False)
-print(f"✅ Cleaned dataset saved to: {main_output}")
+output_path = "data/cleaned/immoweb-dataset_cleaned_mvg.csv"
+df_no_outliers.to_csv(output_path, index=False)
+print(f"✅ Cleaned dataset saved to: {output_path}")
+print(f"Final shape: {df_no_outliers.shape}")
 
 # Save mapping tables as separate CSVs for transparency and documentation
 pd.DataFrame(list(epc_mapping.items()), columns=["EPC Label", "EPC Score"]).to_csv("data/cleaned/mapping_epcScore.csv", index=False)
 pd.DataFrame(list(condition_mapping.items()), columns=["Building Condition", "Score"]).to_csv("data/cleaned/mapping_buildingCondition.csv", index=False)
 pd.DataFrame(list(type_mapping.items()), columns=["Property Type", "Code"]).to_csv("data/cleaned/mapping_type.csv", index=False)
-
 print("📄 Mapping tables saved: epcScore, buildingCondition, type.")
 
-# Maybe later to prepare for ML
+# End of code ======================================================================================
 
-# === STEP 8: Convert remaining categorical columns to numeric ===
+
+# Maybe later to prepare for ML
+# Convert remaining categorical columns to numeric
 # Many ML models only work with numbers, so we convert text labels using one-hot encoding
 # This creates new columns for each category (e.g. province_Liège = 1 if applicable)
 #cat_cols = df.select_dtypes(include='object').columns.tolist()
 #if cat_cols:
 #    df = pd.get_dummies(df, columns=cat_cols, drop_first=True)
 
-# === STEP 10: Drop any rows that still contain missing values ===
+# Drop any rows that still contain missing values
 # This is a simple, safe strategy when building first models ?????????????? maybe later befor ML....
 # df = df.dropna()
