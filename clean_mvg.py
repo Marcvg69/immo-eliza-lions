@@ -56,7 +56,7 @@ for col in df.select_dtypes(include='object'):
 # Remove exact duplicate rows
 df.drop_duplicates(inplace=True)
 
-# Drop rows with missing price ===
+# Drop rows with missing price
 # Price is our target variable — we can’t model or analyse without it.
 df = df[df['price'].notna()].copy()
 
@@ -95,63 +95,46 @@ df['type'] = df['type'].map(type_mapping)
 # Helps standardize property value comparisons across different sizes
 df['price_per_m2'] = df['price'] / df['habitableSurface']
 
-# REMOVE OUTLIERS
-def remove_outliers_iqr(df, columns):
-    df_filtered = df.copy()
-    for col in columns:
-        Q1 = df_filtered[col].quantile(0.25)
-        Q3 = df_filtered[col].quantile(0.75)
-        IQR = Q3 - Q1
-        lower = Q1 - 1.5 * IQR
-        upper = Q3 + 1.5 * IQR
-        
-        # Print stats
-        print(f"\n📊 Outlier analysis for '{col}':")
-        print(f"  Q1 (25th percentile): {Q1:,.2f}")
-        print(f"  Q3 (75th percentile): {Q3:,.2f}")
-        print(f"  IQR: {IQR:,.2f}")
-        print(f"  Outlier threshold: < {lower:,.2f} or > {upper:,.2f}")
+# Remove invalid values
+# Prices and price per m² cannot be negative. These are likely data entry errors.
+df = df[df['price'] >= 0]
+print(f"Minimum price in data after filtering: {df['price'].min():,.2f}")
+df = df[df['price_per_m2'] >= 0]
+print(f"Minimum price in data after filtering: {df['price_per_m2'].min():,.2f}")
+print("✅ Removed rows with negative 'price' and 'price_per_m2'.")
+print(f"Remaining rows after filter: {len(df)}")
 
-        original_len = len(df_filtered)
-        outlier_count = df_filtered[(df_filtered[col] < lower) | (df_filtered[col] > upper)].shape[0]
-        pct_removed = 100 * outlier_count / original_len
-        print(f"  Outliers to remove: {outlier_count} ({pct_removed:.2f}%)")
+# Remove outliers in price
+print("\n📊 Outlier analysis and filtering for 'price':")
+q1 = df['price'].quantile(0.25)
+q3 = df['price'].quantile(0.75)
+iqr = q3 - q1
+lower = q1 - 1.5 * iqr
+upper = q3 + 1.5 * iqr
+df = df[(df['price'] >= lower) & (df['price'] <= upper)]
+print(f"  Q1: {q1:,.2f}, Q3: {q3:,.2f}, IQR: {iqr:,.2f}")
+print(f"  Kept prices in range: {lower:,.2f} to {upper:,.2f}")
+print(f"  Rows remaining: {len(df)}")
 
-        # PLOT before removal
-        plt.figure(figsize=(10, 4))
-        sns.boxplot(x=df_filtered[col])
-        plt.title(f"Before: Outliers in {col}")
-        plt.xlabel(col)
-        plt.tight_layout()
-        plt.show()
+# Remove outliers in price_per_m2
+print("\n📊 Outlier analysis and filtering for 'price_per_m2':")
+q1_ppm2 = df['price_per_m2'].quantile(0.25)
+q3_ppm2 = df['price_per_m2'].quantile(0.75)
+iqr_ppm2 = q3_ppm2 - q1_ppm2
+lower_ppm2 = q1_ppm2 - 1.5 * iqr_ppm2
+upper_ppm2 = q3_ppm2 + 1.5 * iqr_ppm2
+df = df[(df['price_per_m2'] >= lower_ppm2) & (df['price_per_m2'] <= upper_ppm2)]
+print(f"  Q1: {q1_ppm2:,.2f}, Q3: {q3_ppm2:,.2f}, IQR: {iqr_ppm2:,.2f}")
+print(f"  Kept price/m² in range: {lower_ppm2:,.2f} to {upper_ppm2:,.2f}")
+print(f"  Rows remaining: {len(df)}")
 
-        # Remove outliers
-        df_filtered = df_filtered[(df_filtered[col] >= lower) & (df_filtered[col] <= upper)]
-
-        # PLOT after removal
-        plt.figure(figsize=(10, 4))
-        sns.boxplot(x=df_filtered[col])
-        plt.title(f"After: Outliers removed from {col}")
-        plt.xlabel(col)
-        plt.tight_layout()
-        plt.show()
-
-    return df_filtered
-
-# Columns to check for outliers
-columns_to_filter = ['price', 'price_per_m2', 'habitableSurface', 'bedroomCount', 'bathroomCount']
-# Apply outlier removal
-df_no_outliers = remove_outliers_iqr(df, columns_to_filter)
-
-# Save result
-# Create output folder if not present
-os.makedirs("data/cleaned", exist_ok=True)
+# === Step 8: Save cleaned dataset ===
 output_path = "data/cleaned/immoweb-dataset_cleaned_mvg.csv"
-df_no_outliers.to_csv(output_path, index=False)
-print(f"✅ Cleaned dataset saved to: {output_path}")
-print(f"Final shape: {df_no_outliers.shape}")
+os.makedirs("data/cleaned", exist_ok=True)
+df.to_csv(output_path, index=False)
+print(f"\n✅ Cleaned dataset saved to: {output_path}")
+print(f"Final shape: {df.shape}")
 
-# Save mapping tables as separate CSVs for transparency and documentation
 pd.DataFrame(list(epc_mapping.items()), columns=["EPC Label", "EPC Score"]).to_csv("data/cleaned/mapping_epcScore.csv", index=False)
 pd.DataFrame(list(condition_mapping.items()), columns=["Building Condition", "Score"]).to_csv("data/cleaned/mapping_buildingCondition.csv", index=False)
 pd.DataFrame(list(type_mapping.items()), columns=["Property Type", "Code"]).to_csv("data/cleaned/mapping_type.csv", index=False)
