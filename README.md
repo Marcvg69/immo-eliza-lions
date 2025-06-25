@@ -1,5 +1,6 @@
 # immo-eliza-lions
-Group project with Augustin &amp; Preeti to clean immoweb data and present EDA
+
+Group project by  Augustin, Marc van Goolen and Preeti to clean immoweb data and present EDA.
 
 # Description
 This project is to clean the data and use some of the visualization libraries to get some idea about the nature of data.
@@ -26,8 +27,8 @@ Analysis folder contains =>
 All the visuals are generated in data_analysis.ipynb
 
 # Visuals
-![alt text](image-1.png)
 
+![alt text](image.png)
 
 # Contributors
 
@@ -37,6 +38,7 @@ All the visuals are generated in data_analysis.ipynb
 # Timeline
 
 It was a three days project
+
 # Personal situation
 
 We enjoyed working on this project together. It was a great experience working in a team and learning a lot of new tools and techniques.
