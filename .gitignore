@@ -1,3 +1,8 @@
+analysis/data_analysis_mvg.ipynb
+preprocess_data.py
+clean_mvg.py
+
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
