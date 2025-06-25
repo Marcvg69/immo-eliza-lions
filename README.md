@@ -8,24 +8,64 @@ This project is to clean the data and use some of the visualization libraries to
 Generate some good visuals with good stories behind them.
 
 Make the data ready for the next step (Train Machine learning model) to predict house prices.
+# Data
+ Our data contains columns:
+      ['Unnamed: 0', 'id', 'url', 'type', 'subtype', 'bedroomCount',
+       'bathroomCount', 'province', 'locality', 'postCode', 'habitableSurface',
+       'roomCount', 'monthlyCost', 'hasAttic', 'hasBasement',
+       'hasDressingRoom', 'diningRoomSurface', 'hasDiningRoom',
+       'buildingCondition', 'buildingConstructionYear', 'facedeCount',
+       'floorCount', 'streetFacadeWidth', 'hasLift', 'floodZoneType',
+       'heatingType', 'hasHeatPump', 'hasPhotovoltaicPanels',
+       'hasThermicPanels', 'kitchenSurface', 'kitchenType', 'landSurface',
+       'hasLivingRoom', 'livingRoomSurface', 'hasBalcony', 'hasGarden',
+       'gardenSurface', 'gardenOrientation', 'parkingCountIndoor',
+       'parkingCountOutdoor', 'hasAirConditioning', 'hasArmoredDoor',
+       'hasVisiophone', 'hasOffice', 'toiletCount', 'hasSwimmingPool',
+       'hasFireplace', 'hasTerrace', 'terraceSurface', 'terraceOrientation',
+       'accessibleDisabledPeople', 'epcScore', 'price']
 
 # Installation
+
+```bash
+git clone git@github.com:Marcvg69/immo-eliza-lions.git
+cd immo-eliza-lions
+```
+```
+To clean the dataset:
+
+```bash
+clean.py
+```
+To visualize the data:
+
+```bash
+data_analysis.ipynb
+```
+
 For installations requirements.txt can be referred
 requirements.txt
 
 # Usage
 Data folder contains =>
+
 Original dataset : immoweb-dataset.csv
+
 Cleaned dataset  : immoweb-dataset_cleaned.csv
 
 
-reports folder contains => clean.py
+clean.py
+
 All the cleaning is done in the clean.py
 
 
-Analysis folder contains =>
+Analysis folder contains => data_analysis.ipynb
+
 All the visuals are generated in data_analysis.ipynb
 
+Figures folder contains:
+
+All the figures generated
 # Visuals
 
 ![alt text](image.png)
