@@ -33,7 +33,7 @@ All the visuals are generated in data_analysis.ipynb
 
   - Marc Van Goolen -  [GitHub](https://github.com/Marcvg69)/
   - Preeti - [GitHub](https://github.com/Preeti9392)
-  - Augustin -[GitHub]()
+  - Augustin -[GitHub](https://github.com/akameni)
 # Timeline
 
 It was a three days project
