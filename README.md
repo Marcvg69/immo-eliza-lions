@@ -19,7 +19,7 @@ All the visuals are generated in data_analysis.ipynb
 # Visuals
 ![alt text](image-1.png)
 # Contributors
-  [Marc Van Goolen] (https://github.com/Marcvg69)
+  [Marc Van Goolen] (https://github.com/Marcvg69)/
   [Preeti] (https://github.com/Preeti9392)
   Augustin
 # Timeline
